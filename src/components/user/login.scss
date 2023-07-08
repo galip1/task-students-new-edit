@@ -1,0 +1,72 @@
+@use "../../assets/scss/variables" as v;
+@use "../../assets/scss/mixins" as m;
+
+.loginDiv {
+  background-color: v.$color1;
+  position: absolute;
+  right: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  form {
+    background-color: white;
+    width: 60%;
+    margin: auto;
+    margin-top: 5rem;
+    border-radius: 1rem;
+
+    input {
+      border-radius: 0.2rem !important;
+    }
+    .form-label {
+      font-size: 0.7rem;
+      opacity: 0.5;
+      font-weight: 600;
+    }
+    .headers {
+      text-align: center;
+      margin-top: 1rem;
+      h2 {
+        font-weight: bolder;
+        span {
+          color: v.$color1;
+        }
+        margin-bottom: 2rem;
+      }
+      h4 {
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+      p {
+        font-size: 0.7rem;
+        opacity: 0.6;
+      }
+    }
+    ::placeholder {
+      opacity: 0.6;
+      font-size: 0.7rem;
+    }
+    button {
+      width: 100%;
+      margin-bottom: 2rem;
+      color: white !important;
+      border-radius: 0.2rem;
+      margin-top: 1rem;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+    .forgot-reset {
+      text-align: center;
+
+      .forgotText {
+        margin-right: 0.2rem;
+        font-size: 0.7rem;
+      }
+      .resetText {
+        color: v.$color1;
+        font-size: 0.7rem;
+      }
+    }
+  }
+}

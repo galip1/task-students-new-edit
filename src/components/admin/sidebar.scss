@@ -1,0 +1,78 @@
+@use "../../assets/scss/mixins" as m;
+@use "../../assets/scss/variables" as v;
+
+.admin-navbar {
+  @media (min-width: 992px) {
+    height: 100vh;
+    align-items: flex-start !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+  }
+  .container {
+    @media (min-width: 992px) {
+      @include m.flexbox(column, center, center);
+    }
+  }
+  .navbar-brand {
+    text-align: center;
+    div {
+      @include m.flexbox(row, center, center);
+
+      span {
+        color: v.$color1;
+        margin-right: 0.5rem;
+        font-weight: bolder;
+        font-size: 2rem;
+      }
+    }
+    h3 {
+      color: black;
+      font-weight: 600;
+    }
+    h5 {
+      color: v.$color1;
+    }
+    img {
+      width: 100px;
+      height: 20vh;
+      margin: 1rem;
+      border-radius: 50%;
+      @media (min-width: 992px) {
+        width: 180px;
+        margin: 1.5rem;
+      }
+    }
+  }
+  .navbar-nav {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column !important;
+    align-items: flex-start;
+    .nav-link.active {
+      color: black;
+      width: 150px;
+      background-color: v.$color1 !important;
+    }
+    .nav-link {
+      color: black;
+      padding: 0.5rem 2rem;
+      font-size: 0.8rem;
+      border-radius: 0.3rem;
+      &:nth-child(7) {
+        margin-top: 2rem;
+        svg {
+          margin-left: 1rem;
+        }
+      }
+      svg {
+        margin-right: 0.5rem;
+      }
+      &:hover {
+        width: 150px;
+        border-radius: 0.3rem;
+        background-color: v.$color1 !important;
+      }
+    }
+  }
+}
