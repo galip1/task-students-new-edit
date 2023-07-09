@@ -1,36 +1,95 @@
 import React, { useState, useEffect } from "react";
 import { Col, Container, Form, InputGroup, Row } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
-import { FaSearch } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import "./admin-students.scss";
 import DataTable from "react-data-table-component";
 import { toast } from "../../helpers/swal";
 import { getStudents } from "../../api/student-service";
-
-const columns = [
-  { name: "", selector: (row) => `${row.image}` },
-  { name: "Name", selector: (row) => `${row.firstName}, ${row.lastName}` },
-  { name: "Email", selector: (row) => row.email },
-  { name: "Phone", selector: (row) => row.phone },
-  { name: "Website", selector: (row) => row.website },
-  { name: "Company Name", selector: (row) => row.company.name },
-];
+import { FaSearch, FaEdit, FaTrash, FaSave } from "react-icons/fa";
 
 const AdminStudents = () => {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [perPage, setPerPage] = useState(10);
-  const [filters, setFilters] = useState({});
-  const navigate = useNavigate();
+  const [filterValue, setFilterValue] = useState("");
+  const [editingUser, setEditingUser] = useState(null);
+  const [filteredUsers, setFilteredUsers] = useState([]);
 
-  const loadData = async (page) => {
+  const ActionsCell = ({ row }) => {
+    const isEditing = editingUser === row;
+
+    const handleEditClick = () => {
+      if (isEditing) {
+        setEditingUser(null);
+      } else {
+        setEditingUser(row);
+      }
+    };
+
+    const handleDeleteClick = () => {
+      if (isEditing) {
+        setEditingUser(null);
+      } else {
+      }
+    };
+    return (
+      <>
+        {isEditing ? (
+          <>
+            <FaSave className="action-icon" onClick={handleEditClick} />
+            <FaTrash className="action-icon" onClick={handleDeleteClick} />
+          </>
+        ) : (
+          <>
+            <FaEdit className="action-icon" onClick={handleEditClick} />
+            <FaTrash className="action-icon" onClick={handleDeleteClick} />
+          </>
+        )}
+      </>
+    );
+  };
+
+  const columns = [
+    {
+      name: "",
+      selector: (row) => `${row.image}`,
+    },
+    {
+      name: "Name",
+      selector: (row) => `${row.firstName}, ${row.lastName}`,
+    },
+    {
+      name: "Email",
+      selector: (row) => row.email,
+    },
+    {
+      name: "Phone",
+      selector: (row) => row.phone,
+    },
+    {
+      name: "Website",
+      selector: (row) => row.website,
+    },
+    {
+      name: "Company Name",
+      selector: (row) => row.company.name,
+    },
+    {
+      name: "",
+      cell: ActionsCell,
+    },
+  ];
+
+  const loadData = async (page, filterValue) => {
     setLoading(true);
     try {
-      const resp = await getStudents(page, perPage);
-      const { totalElements } = resp.data.users;
+      const resp = await getStudents(page, perPage, filterValue);
+      const { totalElements, content } = resp.data.users;
       setUsers(resp.data.users);
       setTotalRows(totalElements);
+      setFilteredUsers(resp.data.users); // Set filtered users
+      setEditingUser(null); // Reset editing state
     } catch (err) {
       const message = err.response ? err.response.data.message : err;
       toast(message, "error");
@@ -42,9 +101,8 @@ const AdminStudents = () => {
   const handleChangeRowsPerPage = async (newPerPage, page) => {
     setLoading(true);
     try {
-      const resp = await getStudents(page - 1, newPerPage);
-      const { content } = resp.data;
-      setUsers(content);
+      const resp = await getStudents(page - 1, newPerPage, filterValue);
+      setUsers(resp.data);
       setPerPage(newPerPage);
     } catch (err) {
       const message = err.response ? err.response.data.message : err;
@@ -53,12 +111,26 @@ const AdminStudents = () => {
       setLoading(false);
     }
   };
+
   const handleChangePage = (page) => {
     loadData(page - 1);
   };
-  // const handleRowClicked = (row) => {
-  //   navigate(`/admin/users/${row.id}`);
-  // };
+
+  const handleFilterChange = (e) => {
+    const value = e.target.value;
+    setFilterValue(value);
+
+    const filtered = users.filter(
+      (user) => user.firstName.toLowerCase().includes(value.toLowerCase())
+      // user.lastName.toLowerCase().includes(value.toLowerCase()) ||
+      // user.email.toLowerCase().includes(value.toLowerCase()) ||
+      // user.phone.toLowerCase().includes(value.toLowerCase()) ||
+      // user.website.toLowerCase().includes(value.toLowerCase()) ||
+      // user.company.name.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredUsers(filtered);
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       loadData(0);
@@ -66,17 +138,7 @@ const AdminStudents = () => {
     return () => {
       clearTimeout(timer);
     };
-    // eslint-disable-next-line
-  }, [filters]);
-
-  // const handleFilterChange = (e) => {
-  //   const name = e.target.name;
-  //   const value = name === "q" ? e.target.value : [e.target.value];
-  //   setFilters((prevFilters) => ({
-  //     ...prevFilters,
-  //     [name]: value,
-  //   }));
-  // };
+  }, [filterValue]);
 
   return (
     <Container className="admin-students">
@@ -89,9 +151,8 @@ const AdminStudents = () => {
             <Form.Control
               type="search"
               placeholder="Type something"
-              //name="q"
-              // value={filters.q}
-              // onChange={handleFilterChange}
+              value={filterValue}
+              onChange={handleFilterChange}
             />
             <InputGroup.Text>
               <FaSearch />
@@ -109,14 +170,14 @@ const AdminStudents = () => {
           <DataTable
             title=""
             columns={columns}
-            data={users}
+            data={filteredUsers} // Use filtered users
             progressPending={loading}
             pagination
             paginationServer
             paginationTotalRows={totalRows}
             onChangeRowsPerPage={handleChangeRowsPerPage}
             onChangePage={handleChangePage}
-            //onRowClicked={handleRowClicked}
+            customFilter={handleFilterChange} // Apply the filter function
           />
         </Col>
       </Row>

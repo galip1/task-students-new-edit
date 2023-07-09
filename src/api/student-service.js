@@ -9,5 +9,5 @@ export const getStudents = () => {
 };
 
 export const newStudent = ({ newStudentValues }) => {
-  return axios.post(`${API_URL}/users/add`);
+  return axios.post(`${API_URL}/users/add`, newStudentValues);
 };

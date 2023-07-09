@@ -26,7 +26,6 @@ const Dashboard = () => {
   const loadData = async () => {
     try {
       const resp = await getUsers();
-      console.log(resp.data.total);
       setUsers(resp.data.total);
     } catch (err) {}
   };
