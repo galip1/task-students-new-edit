@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Col, Container, Form, InputGroup, Row } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import "./admin-students.scss";
 import DataTable from "react-data-table-component";
@@ -21,19 +21,15 @@ const AdminStudents = () => {
   const [users, setUsers] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [perPage, setPerPage] = useState(10);
-  const [filters, setFilters] = useState({
-    q: "",
-    role: [],
-  });
+  const [filters, setFilters] = useState({});
   const navigate = useNavigate();
 
   const loadData = async (page) => {
     setLoading(true);
     try {
-      const resp = await getStudents(filters.q, filters.role[0], page, perPage);
-      const { users, totalElements } = resp.data.users;
+      const resp = await getStudents(page, perPage);
+      const { totalElements } = resp.data.users;
       setUsers(resp.data.users);
-      console.log(resp.data.users);
       setTotalRows(totalElements);
     } catch (err) {
       const message = err.response ? err.response.data.message : err;
@@ -46,12 +42,7 @@ const AdminStudents = () => {
   const handleChangeRowsPerPage = async (newPerPage, page) => {
     setLoading(true);
     try {
-      const resp = await getStudents(
-        filters.q,
-        filters.role[0],
-        page - 1,
-        newPerPage
-      );
+      const resp = await getStudents(page - 1, newPerPage);
       const { content } = resp.data;
       setUsers(content);
       setPerPage(newPerPage);
@@ -65,9 +56,9 @@ const AdminStudents = () => {
   const handleChangePage = (page) => {
     loadData(page - 1);
   };
-  const handleRowClicked = (row) => {
-    navigate(`/admin/users/${row.id}`);
-  };
+  // const handleRowClicked = (row) => {
+  //   navigate(`/admin/users/${row.id}`);
+  // };
   useEffect(() => {
     const timer = setTimeout(() => {
       loadData(0);
@@ -78,17 +69,17 @@ const AdminStudents = () => {
     // eslint-disable-next-line
   }, [filters]);
 
-  const handleFilterChange = (e) => {
-    const name = e.target.name;
-    const value = name === "q" ? e.target.value : [e.target.value];
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      [name]: value,
-    }));
-  };
+  // const handleFilterChange = (e) => {
+  //   const name = e.target.name;
+  //   const value = name === "q" ? e.target.value : [e.target.value];
+  //   setFilters((prevFilters) => ({
+  //     ...prevFilters,
+  //     [name]: value,
+  //   }));
+  // };
 
   return (
-    <Container className="admin-users">
+    <Container className="admin-students">
       <Row className="my-5">
         <Col md={5}>
           <h4>Students List</h4>
@@ -98,9 +89,9 @@ const AdminStudents = () => {
             <Form.Control
               type="search"
               placeholder="Type something"
-              name="q"
-              value={filters.q}
-              onChange={handleFilterChange}
+              //name="q"
+              // value={filters.q}
+              // onChange={handleFilterChange}
             />
             <InputGroup.Text>
               <FaSearch />
@@ -108,7 +99,9 @@ const AdminStudents = () => {
           </InputGroup>
         </Col>
         <Col md={4}>
-          <button>ADD NEW STUDENT</button>
+          <Link to="/admin/students/new-student">
+            <button>ADD NEW STUDENT</button>
+          </Link>
         </Col>
       </Row>
       <Row>
@@ -123,7 +116,7 @@ const AdminStudents = () => {
             paginationTotalRows={totalRows}
             onChangeRowsPerPage={handleChangeRowsPerPage}
             onChangePage={handleChangePage}
-            onRowClicked={handleRowClicked}
+            //onRowClicked={handleRowClicked}
           />
         </Col>
       </Row>
