@@ -81,14 +81,13 @@ const AdminStudents = () => {
     },
   ];
 
-  const loadData = async (page, filterValue) => {
+  const loadData = async (page) => {
     setLoading(true);
     try {
-      const resp = await getStudents(page, perPage, filterValue);
+      const resp = await getStudents(page, perPage);
       const { totalElements, content } = resp.data.users;
-      /// setUsers(resp.data.users);
+      setUsers(resp.data.users);
       setTotalRows(totalElements);
-      setFilteredUsers(resp.data.users); // Set filtered users
       setEditingUser(null); // Reset editing state
     } catch (err) {
       const message = err.response ? err.response.data.message : err;
@@ -102,7 +101,7 @@ const AdminStudents = () => {
     setLoading(true);
     try {
       const resp = await getStudents(page - 1, newPerPage, filterValue);
-      // setUsers(resp.data.users);
+      setUsers(resp.data.users);
       setPerPage(newPerPage);
     } catch (err) {
       const message = err.response ? err.response.data.message : err;
@@ -115,6 +114,15 @@ const AdminStudents = () => {
   const handleChangePage = (page) => {
     loadData(page - 1);
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData(0);
+    }, 1000);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [filterValue]);
 
   const handleFilterChange = (e) => {
     const value = e.target.value;
@@ -130,16 +138,6 @@ const AdminStudents = () => {
     );
     setFilteredUsers(filtered);
   };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadData(0);
-    }, 1000);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [filterValue]);
-
   return (
     <Container className="admin-students">
       <Row className="my-5">
