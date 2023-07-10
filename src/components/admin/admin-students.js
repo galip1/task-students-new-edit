@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Col, Container, Form, InputGroup, Row } from "react-bootstrap";
+import { Button, Col, Container, Form, InputGroup, Row } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import "./admin-students.scss";
 import DataTable from "react-data-table-component";
@@ -53,7 +53,7 @@ const AdminStudents = () => {
   const columns = [
     {
       name: "",
-      selector: (row) => `${row.image}`,
+      selector: (row) => <img src={row.image} width="75px" alt="student"></img>,
     },
     {
       name: "Name",
@@ -86,7 +86,7 @@ const AdminStudents = () => {
     try {
       const resp = await getStudents(page, perPage, filterValue);
       const { totalElements, content } = resp.data.users;
-      setUsers(resp.data.users);
+      /// setUsers(resp.data.users);
       setTotalRows(totalElements);
       setFilteredUsers(resp.data.users); // Set filtered users
       setEditingUser(null); // Reset editing state
@@ -102,7 +102,7 @@ const AdminStudents = () => {
     setLoading(true);
     try {
       const resp = await getStudents(page - 1, newPerPage, filterValue);
-      setUsers(resp.data);
+      // setUsers(resp.data.users);
       setPerPage(newPerPage);
     } catch (err) {
       const message = err.response ? err.response.data.message : err;
@@ -143,14 +143,14 @@ const AdminStudents = () => {
   return (
     <Container className="admin-students">
       <Row className="my-5">
-        <Col md={5}>
+        <Col md={3} className="m-auto">
           <h4>Students List</h4>
         </Col>
-        <Col md={3} className="">
+        <Col md={5} className="m-auto">
           <InputGroup className="searchbox">
             <Form.Control
               type="search"
-              placeholder="Type something"
+              placeholder="Search"
               value={filterValue}
               onChange={handleFilterChange}
             />
@@ -161,7 +161,7 @@ const AdminStudents = () => {
         </Col>
         <Col md={4}>
           <Link to="/admin/students/new-student">
-            <button>ADD NEW STUDENT</button>
+            <Button>ADD NEW STUDENT</Button>
           </Link>
         </Col>
       </Row>

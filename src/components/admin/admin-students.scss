@@ -2,6 +2,17 @@
 @use "../../assets/scss/variables" as v;
 
 .admin-students {
+  button {
+    padding: 0.7rem 2rem;
+    color: white;
+    font-size: 0.8rem;
+  }
+  .searchbox {
+    svg,
+    ::placeholder {
+      opacity: 0.3;
+    }
+  }
   .action-icon {
     color: v.$color1;
     margin-right: 5px;

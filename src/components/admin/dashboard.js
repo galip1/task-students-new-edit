@@ -39,10 +39,10 @@ const Dashboard = () => {
         <Col sm={6} md={4}>
           <Link to="/admin/students">
             <Card>
-              <Card.Text>
+              <div>
                 <PiStudentLight />
-                <Card.Title>Students</Card.Title>
-              </Card.Text>
+                <p>Students</p>
+              </div>
               <span>25</span>
             </Card>
           </Link>
@@ -51,10 +51,10 @@ const Dashboard = () => {
         <Col sm={6} md={4}>
           <Link to="/admin/cource">
             <Card>
-              <Card.Text>
+              <div>
                 <BsBookmark />
-                <Card.Title>Cource</Card.Title>
-              </Card.Text>
+                <p>Cource</p>
+              </div>
 
               <span>19</span>
             </Card>
@@ -64,10 +64,10 @@ const Dashboard = () => {
         <Col sm={6} md={4}>
           <Link to="/admin/payment">
             <Card>
-              <Card.Text>
+              <div>
                 <AiOutlineDollar />
-                <Card.Title>Payment </Card.Title>
-              </Card.Text>
+                <p>Payment </p>
+              </div>
 
               <span>18 $ </span>
             </Card>
@@ -76,10 +76,10 @@ const Dashboard = () => {
         <Col sm={6} md={4}>
           <Link to="/admin/user">
             <Card>
-              <Card.Text>
+              <div>
                 <AiOutlineUser />
-                <Card.Title>User </Card.Title>
-              </Card.Text>
+                <p>User </p>
+              </div>
 
               <span>{users}</span>
             </Card>

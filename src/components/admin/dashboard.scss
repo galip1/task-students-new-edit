@@ -40,7 +40,7 @@
         rgb(248, 175, 6) 30%,
         rgb(245, 214, 10) 100%
       );
-      .card-title {
+      p {
         color: white;
       }
       svg {
@@ -53,10 +53,10 @@
     height: 20vh;
     @include m.flexbox(row, space-between);
 
-    .card-text {
+    div {
       @include m.flexbox(column);
       margin: 0.5rem;
-      .card-title {
+      p {
         font-size: 0.9rem;
         opacity: 0.7;
         margin-top: 0.5rem;
