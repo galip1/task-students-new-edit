@@ -11,3 +11,7 @@ export const getStudents = () => {
 export const newStudent = ({ newStudentValues }) => {
   return axios.post(`${API_URL}/users/add`, newStudentValues);
 };
+
+export const deleteStudent = (id) => {
+  return axios.delete(`${API_URL}/users/${id}`);
+};

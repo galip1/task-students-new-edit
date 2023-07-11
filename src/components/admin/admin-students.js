@@ -3,18 +3,19 @@ import { Button, Col, Container, Form, InputGroup, Row } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import "./admin-students.scss";
 import DataTable from "react-data-table-component";
-import { toast } from "../../helpers/swal";
-import { getStudents } from "../../api/student-service";
+import { question, toast } from "../../helpers/swal";
+import { deleteStudent, getStudents } from "../../api/student-service";
 import { FaSearch, FaEdit, FaTrash, FaSave } from "react-icons/fa";
-
+import { GiCancel } from "react-icons/gi";
 const AdminStudents = () => {
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState([]);
+  const [students, setStudents] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [perPage, setPerPage] = useState(10);
   const [filterValue, setFilterValue] = useState("");
   const [editingUser, setEditingUser] = useState(null);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [deleting, setDeleting] = useState(false);
 
   const ActionsCell = ({ row }) => {
     const isEditing = editingUser === row;
@@ -27,23 +28,49 @@ const AdminStudents = () => {
       }
     };
 
-    const handleDeleteClick = () => {
-      if (isEditing) {
-        setEditingUser(null);
-      } else {
+    const handleDeleteClick = async () => {
+      const id = row.id;
+      setDeleting(true);
+      try {
+        await deleteStudent(id);
+        toast("Student was deleted", "success");
+        setStudents(students.filter((s) => s.id !== id));
+      } catch (err) {
+        toast(err.response.data.message, "error");
+      } finally {
+        setDeleting(false);
       }
     };
+
+    const handleDelete = () => {
+      question("Are you sure to delete?", "You won't be able to undo it!").then(
+        (result) => {
+          if (result.isConfirmed) {
+            handleDeleteClick();
+          }
+        }
+      );
+    };
+
+    const handleSaveClick = () => {
+      // Kaydetme işlemi
+    };
+
+    const handleExitClick = () => {
+      setEditingUser(null);
+    };
+
     return (
       <>
         {isEditing ? (
           <>
-            <FaSave className="action-icon" onClick={handleEditClick} />
-            <FaTrash className="action-icon" onClick={handleDeleteClick} />
+            <FaSave className="action-icon" onClick={handleSaveClick} />
+            <GiCancel className="action-icon" onClick={handleExitClick} />
           </>
         ) : (
           <>
             <FaEdit className="action-icon" onClick={handleEditClick} />
-            <FaTrash className="action-icon" onClick={handleDeleteClick} />
+            <FaTrash className="action-icon" onClick={handleDelete} />
           </>
         )}
       </>
@@ -84,9 +111,9 @@ const AdminStudents = () => {
   const loadData = async (page) => {
     setLoading(true);
     try {
-      const resp = await getStudents(page, perPage);
-      const { totalElements, content } = resp.data.users;
-      setUsers(resp.data.users);
+      const resp = await getStudents(page, perPage, filterValue);
+      const { totalElements } = resp.data.users;
+      setStudents(resp.data.users);
       setTotalRows(totalElements);
       setEditingUser(null); // Reset editing state
     } catch (err) {
@@ -101,7 +128,7 @@ const AdminStudents = () => {
     setLoading(true);
     try {
       const resp = await getStudents(page - 1, newPerPage, filterValue);
-      setUsers(resp.data.users);
+      setStudents(resp.data.users);
       setPerPage(newPerPage);
     } catch (err) {
       const message = err.response ? err.response.data.message : err;
@@ -114,21 +141,11 @@ const AdminStudents = () => {
   const handleChangePage = (page) => {
     loadData(page - 1);
   };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadData(0);
-    }, 1000);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [filterValue]);
-
   const handleFilterChange = (e) => {
     const value = e.target.value;
     setFilterValue(value);
 
-    const filtered = users.filter(
+    const filtered = students.filter(
       (user) => user.firstName.toLowerCase().includes(value.toLowerCase())
       // user.lastName.toLowerCase().includes(value.toLowerCase()) ||
       // user.email.toLowerCase().includes(value.toLowerCase()) ||
@@ -138,6 +155,17 @@ const AdminStudents = () => {
     );
     setFilteredUsers(filtered);
   };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData(0);
+    }, 1000);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [filterValue]);
+
+  const dataToShow = filteredUsers.length > 0 ? filteredUsers : students;
+
   return (
     <Container className="admin-students">
       <Row className="my-5">
@@ -168,7 +196,7 @@ const AdminStudents = () => {
           <DataTable
             title=""
             columns={columns}
-            data={filteredUsers} // Use filtered users
+            data={dataToShow} // Use filtered users
             progressPending={loading}
             pagination
             paginationServer
