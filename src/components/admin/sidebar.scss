@@ -54,6 +54,9 @@
       display: flex;
       flex-direction: column !important;
       align-items: flex-start;
+      @media (max-width: 992px) {
+        margin-left: 4rem;
+      }
       .nav-link.active {
         color: black;
         width: 150px;
@@ -64,6 +67,7 @@
         padding: 0.5rem 2rem;
         font-size: 0.8rem;
         border-radius: 0.3rem;
+        transition: none;
         &:nth-child(7) {
           margin-top: 2rem;
           svg {
