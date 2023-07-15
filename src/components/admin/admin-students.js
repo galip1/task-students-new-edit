@@ -3,7 +3,7 @@ import { Button, Col, Container, Form, InputGroup, Row } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import "./admin-students.scss";
 import DataTable from "react-data-table-component";
-import { question, toast } from "../../helpers/swal";
+import { toast } from "../../helpers/swal";
 import {
   deleteStudent,
   getStudents,
@@ -21,7 +21,6 @@ const AdminStudents = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [deleting, setDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [updateding, setUpdateding] = useState(false);
   const [editedStudent, setEditedStudent] = useState(null);
 
   const loadData = async (page) => {
@@ -31,7 +30,7 @@ const AdminStudents = () => {
       const { totalElements } = resp.data.users;
       setStudents(resp.data.users);
       setTotalRows(totalElements);
-      setIsEditing(null);
+      setIsEditing(false);
     } catch (err) {
       const message = err.response ? err.response.data.message : err;
       toast(message, "error");
@@ -39,6 +38,7 @@ const AdminStudents = () => {
       setLoading(false);
     }
   };
+
   const handleEditClick = (row) => {
     setEditedStudent(row);
     setIsEditing(true);
@@ -46,24 +46,22 @@ const AdminStudents = () => {
 
   const handleCancelClick = () => {
     setIsEditing(false);
+    setEditedStudent(null);
   };
 
-  const handleSaveClick = async (row) => {
-    setUpdateding(true);
+  const handleSaveClick = async () => {
     try {
-      await updateStudent(isEditing);
+      await updateStudent(editedStudent);
       toast("Student was saved", "success");
       setIsEditing(false);
+      setEditedStudent(null);
     } catch (err) {
       toast(err.response.data.message, "error");
-    } finally {
-      setUpdateding(false);
     }
   };
 
   const handleDeleteClick = async (id) => {
     setDeleting(true);
-
     try {
       await deleteStudent(id);
       toast("Student was deleted", "success");
@@ -87,7 +85,6 @@ const AdminStudents = () => {
       setLoading(false);
     }
   };
-
   const handleChangePage = (page) => {
     loadData(page - 1);
   };
@@ -106,19 +103,13 @@ const AdminStudents = () => {
     setFilteredUsers(filtered);
   };
   const conditionalCell =
-    (
-      isEditing,
-      handleSaveClick,
-      handleCancelClick,
-      handleEditClick,
-      handleDeleteClick
-    ) =>
+    (handleSaveClick, handleCancelClick, handleEditClick, handleDeleteClick) =>
     (row) =>
       (
         <div className="action-icon">
-          {isEditing ? (
+          {editedStudent && editedStudent.id === row.id ? (
             <>
-              <FaSave onClick={() => handleSaveClick(row)} />
+              <FaSave onClick={handleSaveClick} />
               <GiCancel onClick={handleCancelClick} />
             </>
           ) : (
@@ -133,7 +124,7 @@ const AdminStudents = () => {
   const columns = [
     {
       name: "",
-      selector: (row) => <img src={row.image} width="75px" alt="student"></img>,
+      selector: (row) => <img src={row.image} width="75px" alt="student" />,
     },
     {
       name: "Name",
@@ -158,7 +149,6 @@ const AdminStudents = () => {
     {
       name: "Actions",
       cell: conditionalCell(
-        isEditing,
         handleSaveClick,
         handleCancelClick,
         handleEditClick,
@@ -169,6 +159,7 @@ const AdminStudents = () => {
       button: true,
     },
   ];
+
   useEffect(() => {
     const timer = setTimeout(() => {
       loadData(0);
@@ -178,7 +169,12 @@ const AdminStudents = () => {
     };
   }, [filterValue]);
 
-  const dataToShow = filteredUsers.length > 0 ? filteredUsers : students;
+  // const dataToShow = filteredUsers.length > 0 ? filteredUsers : students;
+  const dataToShow = editedStudent
+    ? [editedStudent]
+    : filteredUsers.length > 0
+    ? filteredUsers
+    : students;
 
   return (
     <Container className="admin-students">
