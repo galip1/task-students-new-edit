@@ -4,109 +4,25 @@ import { Link } from "react-router-dom";
 import "./admin-students.scss";
 import DataTable from "react-data-table-component";
 import { question, toast } from "../../helpers/swal";
-import { deleteStudent, getStudents } from "../../api/student-service";
+import {
+  deleteStudent,
+  getStudents,
+  updateStudent,
+} from "../../api/student-service";
 import { FaSearch, FaEdit, FaTrash, FaSave } from "react-icons/fa";
 import { GiCancel } from "react-icons/gi";
+
 const AdminStudents = () => {
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [perPage, setPerPage] = useState(10);
   const [filterValue, setFilterValue] = useState("");
-  const [editingUser, setEditingUser] = useState(null);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [deleting, setDeleting] = useState(false);
-
-  const ActionsCell = ({ row }) => {
-    const isEditing = editingUser === row;
-
-    const handleEditClick = () => {
-      if (isEditing) {
-        setEditingUser(null);
-      } else {
-        setEditingUser(row);
-      }
-    };
-
-    const handleDeleteClick = async () => {
-      const id = row.id;
-      setDeleting(true);
-      try {
-        await deleteStudent(id);
-        toast("Student was deleted", "success");
-        setStudents(students.filter((s) => s.id !== id));
-      } catch (err) {
-        toast(err.response.data.message, "error");
-      } finally {
-        setDeleting(false);
-      }
-    };
-
-    const handleDelete = () => {
-      question("Are you sure to delete?", "You won't be able to undo it!").then(
-        (result) => {
-          if (result.isConfirmed) {
-            handleDeleteClick();
-          }
-        }
-      );
-    };
-
-    const handleSaveClick = () => {
-      // Kaydetme işlemi
-    };
-
-    const handleExitClick = () => {
-      setEditingUser(null);
-    };
-
-    return (
-      <>
-        {isEditing ? (
-          <>
-            <FaSave className="action-icon" onClick={handleSaveClick} />
-            <GiCancel className="action-icon" onClick={handleExitClick} />
-          </>
-        ) : (
-          <>
-            <FaEdit className="action-icon" onClick={handleEditClick} />
-            <FaTrash className="action-icon" onClick={handleDelete} />
-          </>
-        )}
-      </>
-    );
-  };
-
-  const columns = [
-    {
-      name: "",
-      selector: (row) => <img src={row.image} width="75px" alt="student"></img>,
-    },
-    {
-      name: "Name",
-      selector: (row) => `${row.firstName}, ${row.lastName}`,
-    },
-    {
-      name: "Email",
-      selector: (row) => row.email,
-    },
-    {
-      name: "Phone",
-      selector: (row) => row.phone,
-    },
-    {
-      name: "Website",
-      selector: (row) => row.website,
-    },
-    {
-      name: "Company Name",
-      selector: (row) => row.company.name,
-    },
-    {
-      name: "",
-      cell: ActionsCell,
-    },
-  ];
+  const [isEditing, setIsEditing] = useState(false);
+  const [updateding, setUpdateding] = useState(false);
+  const [editedStudent, setEditedStudent] = useState(null);
 
   const loadData = async (page) => {
     setLoading(true);
@@ -115,12 +31,46 @@ const AdminStudents = () => {
       const { totalElements } = resp.data.users;
       setStudents(resp.data.users);
       setTotalRows(totalElements);
-      setEditingUser(null); // Reset editing state
+      setIsEditing(null);
     } catch (err) {
       const message = err.response ? err.response.data.message : err;
       toast(message, "error");
     } finally {
       setLoading(false);
+    }
+  };
+  const handleEditClick = (row) => {
+    setEditedStudent(row);
+    setIsEditing(true);
+  };
+
+  const handleCancelClick = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveClick = async (row) => {
+    setUpdateding(true);
+    try {
+      await updateStudent(isEditing);
+      toast("Student was saved", "success");
+      setIsEditing(false);
+    } catch (err) {
+      toast(err.response.data.message, "error");
+    } finally {
+      setUpdateding(false);
+    }
+  };
+
+  const handleDeleteClick = async (id) => {
+    setDeleting(true);
+
+    try {
+      await deleteStudent(id);
+      toast("Student was deleted", "success");
+    } catch (err) {
+      toast(err.response.data.message, "error");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -155,6 +105,70 @@ const AdminStudents = () => {
     );
     setFilteredUsers(filtered);
   };
+  const conditionalCell =
+    (
+      isEditing,
+      handleSaveClick,
+      handleCancelClick,
+      handleEditClick,
+      handleDeleteClick
+    ) =>
+    (row) =>
+      (
+        <div className="action-icon">
+          {isEditing ? (
+            <>
+              <FaSave onClick={() => handleSaveClick(row)} />
+              <GiCancel onClick={handleCancelClick} />
+            </>
+          ) : (
+            <>
+              <FaEdit onClick={() => handleEditClick(row)} />
+              <FaTrash onClick={() => handleDeleteClick(row.id)} />
+            </>
+          )}
+        </div>
+      );
+
+  const columns = [
+    {
+      name: "",
+      selector: (row) => <img src={row.image} width="75px" alt="student"></img>,
+    },
+    {
+      name: "Name",
+      selector: (row) => `${row.firstName}, ${row.lastName}`,
+    },
+    {
+      name: "Email",
+      selector: (row) => row.email,
+    },
+    {
+      name: "Phone",
+      selector: (row) => row.phone,
+    },
+    {
+      name: "Website",
+      selector: (row) => row.website,
+    },
+    {
+      name: "Company Name",
+      selector: (row) => row.company.name,
+    },
+    {
+      name: "Actions",
+      cell: conditionalCell(
+        isEditing,
+        handleSaveClick,
+        handleCancelClick,
+        handleEditClick,
+        handleDeleteClick
+      ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
+    },
+  ];
   useEffect(() => {
     const timer = setTimeout(() => {
       loadData(0);
