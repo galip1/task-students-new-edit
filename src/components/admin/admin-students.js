@@ -49,9 +49,9 @@ const AdminStudents = () => {
     setEditedStudent(null);
   };
 
-  const handleSaveClick = async () => {
+  const handleSaveClick = async (id) => {
     try {
-      await updateStudent(editedStudent);
+      await updateStudent(editedStudent, id);
       toast("Student was saved", "success");
       setIsEditing(false);
       setEditedStudent(null);
@@ -109,7 +109,7 @@ const AdminStudents = () => {
         <div className="action-icon">
           {editedStudent && editedStudent.id === row.id ? (
             <>
-              <FaSave onClick={handleSaveClick} />
+              <FaSave onClick={() => handleSaveClick(row.id)} />
               <GiCancel onClick={handleCancelClick} />
             </>
           ) : (
