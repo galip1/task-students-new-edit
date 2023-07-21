@@ -1,10 +1,7 @@
 import React from "react";
 import { Container, Nav, Navbar } from "react-bootstrap";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-//import { useAppDispatch } from "../../../store/hooks";
-//import { logout } from "../../../store/slices/auth-slice";
 import "./sidebar.scss";
-///import { setCart } from "../../../store/slices/cart-slice";
 import logo from "../../assets/img/Avatar.png";
 import {
   AiOutlineHome,
@@ -15,23 +12,19 @@ import { BsBookmark } from "react-icons/bs";
 import { PiStudentLight } from "react-icons/pi";
 import { HiOutlineDocumentReport } from "react-icons/hi";
 import { FiLogOut } from "react-icons/fi";
+import { question } from "../../helpers/swal";
 
 const SideBar = () => {
-  // const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
   const handleLogout = () => {
-    // question("Logout", "Are you sure to logout?").then((result) => {
-    //   if (result.isConfirmed) {
-    //     dispatch(logout());
-    //     dispatch(setCart([]));
-    //     encryptedLocalStorage.removeItem("token");
-    //     encryptedSessionStorage.removeItem("token");
-    //     localStorage.removeItem("cartUUID");
-    //     sessionStorage.removeItem("cartUUID");
-    //     navigate("/");
-    //     window.location.reload();
-    //   }
+    question("Logout", "Are you sure to logout?").then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem("userName");
+        navigate("/");
+      }
+    });
   };
 
   return (
@@ -43,7 +36,7 @@ const SideBar = () => {
             <h3>MANAGE COURCES</h3>
           </div>
           <img src={logo} alt="AdminPanelLogo" />
-          <h3>John Doe</h3>
+          <h3>John</h3>
           <h5>Admin</h5>
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
