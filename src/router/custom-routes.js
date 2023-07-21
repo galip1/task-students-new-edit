@@ -4,7 +4,7 @@ import ScrollToTop from "../components/common/scroll-to-top/scroll-to-top";
 import LoginPage from "../pages/user/login-page";
 import DashboardPage from "../pages/admin/dashboard-page";
 import AdminStudentsPage from "../pages/admin/admin-students-page";
-import AdminStudentNewPage from "../pages/admin/admin-student-new-page";
+import NotFoundPage from "../pages/common/not-found-page";
 
 const CustomRoutes = () => {
   return (
@@ -18,8 +18,8 @@ const CustomRoutes = () => {
           <Route index element={<DashboardPage />} />
           <Route path="students">
             <Route index element={<AdminStudentsPage />} />
-            <Route path="new-student" element={<AdminStudentNewPage />} />
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
