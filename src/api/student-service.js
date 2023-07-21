@@ -8,17 +8,31 @@ export const getStudents = () => {
   return axios.get(`${API_URL}/users`);
 };
 
+export const getAllUserByPage = (
+  limit = 100,
+  skip = 0,
+  select = "id,image,firstName,lastName,email,phone,domain,company"
+) => {
+  return axios.get(
+    `${API_URL}/users?limit=${limit}&skip=${skip}&select=${select}`
+  );
+};
+
+export const getUserById = (id) => {
+  return axios.get(`${API_URL}/users/${id}`);
+};
+
 ///new student
-export const newStudent = ({ newStudentValues }) => {
-  return axios.post(`${API_URL}/users/add`, newStudentValues);
+export const postUser = (newUser) => {
+  return axios.post(`${API_URL}/users/add`, newUser);
 };
 
 //delete
-export const deleteStudent = (id) => {
+export const deleteUserById = (id) => {
   return axios.delete(`${API_URL}/users/${id}`);
 };
 
 ///update
-export const updateStudent = (id, updateSt) => {
-  return axios.put(`${API_URL}/users/${id}`, updateSt);
+export const updateUserById = (updateUser, id) => {
+  return axios.put(`${API_URL}/users/${id}`, updateUser);
 };

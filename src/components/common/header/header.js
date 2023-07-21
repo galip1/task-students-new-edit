@@ -9,7 +9,7 @@ const Header = () => {
   const navigate = useNavigate();
   return (
     <Container fluid className="header mt-4">
-      <span onClick={() => navigate("/dashboard")}>
+      <span onClick={() => navigate("/")}>
         <TbCircleCaretLeft />
       </span>
       <span>

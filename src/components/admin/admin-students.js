@@ -1,36 +1,43 @@
 import React, { useState, useEffect } from "react";
-import { Button, Col, Container, Form, InputGroup, Row } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import * as Yup from "yup";
+import { useFormik } from "formik";
 import "./admin-students.scss";
-import DataTable from "react-data-table-component";
+import { Button, Container, Form, Modal, Spinner } from "react-bootstrap";
+import DataGrid, {
+  Column,
+  Editing,
+  Pager,
+  Popup,
+  Paging,
+  SearchPanel,
+} from "devextreme-react/data-grid";
+import "devextreme-react/text-area";
+import { Item } from "devextreme-react/form";
 import { toast } from "../../helpers/swal";
-import {
-  deleteStudent,
-  getStudents,
-  updateStudent,
-} from "../../api/student-service";
-import { FaSearch, FaEdit, FaTrash, FaSave } from "react-icons/fa";
-import { GiCancel } from "react-icons/gi";
+import { getAllUserByPage, postUser } from "../../api/student-service";
 
 const AdminStudents = () => {
-  const [loading, setLoading] = useState(true);
-  const [students, setStudents] = useState([]);
-  const [totalRows, setTotalRows] = useState(0);
-  const [perPage, setPerPage] = useState(10);
-  const [filterValue, setFilterValue] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [deleting, setDeleting] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedStudent, setEditedStudent] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([]);
+  const allowedPageSizes = [6, 10, 15, 20, 100];
+  const [showModal, setShowModal] = useState(false);
 
-  const loadData = async (page) => {
+  const initialValues = {
+    id: "",
+    image: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    domain: "",
+    company: "",
+  };
+
+  const loadData = async () => {
     setLoading(true);
     try {
-      const resp = await getStudents(page, perPage, filterValue);
-      const { totalElements } = resp.data.users;
-      setStudents(resp.data.users);
-      setTotalRows(totalElements);
-      setIsEditing(false);
+      const resp = await getAllUserByPage();
+      setData(resp.data.users);
     } catch (err) {
       const message = err.response ? err.response.data.message : err;
       toast(message, "error");
@@ -39,185 +46,289 @@ const AdminStudents = () => {
     }
   };
 
-  const handleEditClick = (row) => {
-    setEditedStudent(row);
-    setIsEditing(true);
-  };
-
-  const handleCancelClick = () => {
-    setIsEditing(false);
-    setEditedStudent(null);
-  };
-
-  const handleSaveClick = async (id) => {
-    try {
-      await updateStudent(editedStudent, id);
-      toast("Student was saved", "success");
-      setIsEditing(false);
-      setEditedStudent(null);
-    } catch (err) {
-      toast(err.response.data.message, "error");
-    }
-  };
-
-  const handleDeleteClick = async (id) => {
-    setDeleting(true);
-    try {
-      await deleteStudent(id);
-      toast("Student was deleted", "success");
-    } catch (err) {
-      toast(err.response.data.message, "error");
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const handleChangeRowsPerPage = async (newPerPage, page) => {
+  const onSubmit = async (values) => {
     setLoading(true);
     try {
-      const resp = await getStudents(page - 1, newPerPage, filterValue);
-      setStudents(resp.data.users);
-      setPerPage(newPerPage);
+      await postUser(values);
+      const updatedData = [values, ...data];
+      setData(updatedData);
+      setShowModal(false);
+      formik.resetForm(initialValues);
     } catch (err) {
-      const message = err.response ? err.response.data.message : err;
-      toast(message, "error");
+      console.log(err);
     } finally {
       setLoading(false);
     }
   };
-  const handleChangePage = (page) => {
-    loadData(page - 1);
-  };
-  const handleFilterChange = (e) => {
-    const value = e.target.value;
-    setFilterValue(value);
 
-    const filtered = students.filter(
-      (user) => user.firstName.toLowerCase().includes(value.toLowerCase())
-      // user.lastName.toLowerCase().includes(value.toLowerCase()) ||
-      // user.email.toLowerCase().includes(value.toLowerCase()) ||
-      // user.phone.toLowerCase().includes(value.toLowerCase()) ||
-      // user.website.toLowerCase().includes(value.toLowerCase()) ||
-      // user.company.name.toLowerCase().includes(value.toLowerCase())
-    );
-    setFilteredUsers(filtered);
-  };
-  const conditionalCell =
-    (handleSaveClick, handleCancelClick, handleEditClick, handleDeleteClick) =>
-    (row) =>
-      (
-        <div className="action-icon">
-          {editedStudent && editedStudent.id === row.id ? (
-            <>
-              <FaSave onClick={() => handleSaveClick(row.id)} />
-              <GiCancel onClick={handleCancelClick} />
-            </>
-          ) : (
-            <>
-              <FaEdit onClick={() => handleEditClick(row)} />
-              <FaTrash onClick={() => handleDeleteClick(row.id)} />
-            </>
-          )}
-        </div>
-      );
+  const validationSchema = Yup.object({
+    image: Yup.string()
+      .matches(
+        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        "Please enter a valid URL!"
+      )
+      .required("Please enter your image link"),
+    firstName: Yup.string().required("Please enter a firstname"),
+    lastName: Yup.string().required("Please enter a lastName"),
+    email: Yup.string().required("Please enter a email"),
+    phone: Yup.string().required("Please enter a phone number"),
+    domain: Yup.string()
+      .matches(
+        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        "Please enter a valid URL!"
+      )
+      .required("Please enter a website"),
+    company: Yup.string().required("Please enter a company name"),
+  });
 
-  const columns = [
-    {
-      name: "",
-      selector: (row) => <img src={row.image} width="75px" alt="student" />,
-    },
-    {
-      name: "Name",
-      selector: (row) => `${row.firstName}, ${row.lastName}`,
-    },
-    {
-      name: "Email",
-      selector: (row) => row.email,
-    },
-    {
-      name: "Phone",
-      selector: (row) => row.phone,
-    },
-    {
-      name: "Website",
-      selector: (row) => row.website,
-    },
-    {
-      name: "Company Name",
-      selector: (row) => row.company.name,
-    },
-    {
-      name: "Actions",
-      cell: conditionalCell(
-        handleSaveClick,
-        handleCancelClick,
-        handleEditClick,
-        handleDeleteClick
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-    },
-  ];
+  const formik = useFormik({
+    initialValues,
+    validationSchema,
+    onSubmit,
+  });
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadData(0);
-    }, 1000);
-    return () => {
-      clearTimeout(timer);
+    loadData();
+    const handleKeyPress = (event) => {
+      if (event.keyCode === 13) {
+        // Enter key
+        event.preventDefault();
+        formik.handleSubmit();
+      } else if (event.keyCode === 27) {
+        // Escape key
+        event.preventDefault();
+        handleCancel();
+      }
     };
-  }, [filterValue]);
+    document.addEventListener("keydown", handleKeyPress);
 
-  // const dataToShow = filteredUsers.length > 0 ? filteredUsers : students;
-  const dataToShow = editedStudent
-    ? [editedStudent]
-    : filteredUsers.length > 0
-    ? filteredUsers
-    : students;
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  const handleCancel = () => {
+    setShowModal(false);
+    formik.resetForm();
+    formik.setTouched({});
+  };
 
   return (
-    <Container className="admin-students">
-      <Row className="my-5">
-        <Col md={3} className="m-auto">
-          <h4>Students List</h4>
-        </Col>
-        <Col md={5} className="m-auto">
-          <InputGroup className="searchbox">
-            <Form.Control
-              type="search"
-              placeholder="Search"
-              value={filterValue}
-              onChange={handleFilterChange}
-            />
-            <InputGroup.Text>
-              <FaSearch />
-            </InputGroup.Text>
-          </InputGroup>
-        </Col>
-        <Col md={4}>
-          <Link to="/admin/students/new-student">
-            <Button>ADD NEW STUDENT</Button>
-          </Link>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <DataTable
-            title=""
-            columns={columns}
-            data={dataToShow} // Use filtered users
-            progressPending={loading}
-            pagination
-            paginationServer
-            paginationTotalRows={totalRows}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
-            onChangePage={handleChangePage}
-            customFilter={handleFilterChange} // Apply the filter function
+    <div className="datagrid">
+      {/* Yeni Öğrenci Ekleme Butonu */}
+      <div className="table-top">
+        <h5>Students List</h5>
+        <Button variant="primary" onClick={() => setShowModal(true)}>
+          <span>ADD NEW STUDENT</span>
+        </Button>
+      </div>
+      {/* Datagrid Bölümü */}
+      <Container fluid>
+        <DataGrid
+          dataSource={data}
+          showBorders={false}
+          keyExpr="id"
+          height={570}
+          columnAutoWidth={true}
+          showColumnLines={false}
+          sorting={{
+            mode: "single",
+            sortOrder: "desc",
+            sortExpr: [{ getter: "id", desc: true }],
+          }}
+        >
+          <SearchPanel
+            visible={true}
+            highlightSearchText={true}
+            searchVisibleColumnsOnly={false}
+            width={212}
+            placeholder="Search..."
           />
-        </Col>
-      </Row>
-    </Container>
+          <Editing
+            mode="popup"
+            allowUpdating={true}
+            allowAdding={false}
+            allowDeleting={true}
+          >
+            <Popup
+              title="Edit Student"
+              showTitle={true}
+              width="60%"
+              height="70%"
+            />
+            <Form>
+              <Item itemType="group" colCount={1} colSpan={2}>
+                <Item dataField="image" />
+                <Item dataField="firstName" />
+                <Item dataField="lastName" />
+                <Item dataField="email" />
+                <Item dataField="phone" />
+                <Item dataField="domain" />
+                <Item dataField="company" />
+              </Item>
+            </Form>
+          </Editing>
+          <Pager
+            visible={true}
+            allowedPageSizes={allowedPageSizes}
+            displayMode="compact"
+            showPageSizeSelector={true}
+            showInfo={true}
+            showNavigationButtons={true}
+          />
+          <Paging defaultPageSize={6} />
+          <Column
+            dataField="image"
+            caption=""
+            visible={true}
+            cellRender={(cellData) => (
+              <img
+                src={cellData.value}
+                alt="User"
+                style={{
+                  width: "4rem",
+                  height: "3.5rem",
+                  borderRadius: ".5rem",
+                }}
+              />
+            )}
+          />
+          <Column
+            dataField="fullName"
+            caption="Name"
+            visible={true}
+            calculateCellValue={(data) => `${data.firstName} ${data.lastName}`}
+          />
+          <Column dataField="email" caption="Email" visible={true} />
+          <Column dataField="phone" caption="Phone" visible={true} />
+          <Column dataField="domain" caption="Website" visible={true} />
+          <Column
+            caption="Company Name"
+            visible={true}
+            calculateCellValue={(data) =>
+              data.company && data.company.name
+                ? data.company.name
+                : data.company
+            }
+          />
+        </DataGrid>
+      </Container>
+      {/* Yeni Öğrenci Ekle Butonuna Basılınca Açılacak Modal Yapı */}
+      <Modal
+        show={showModal}
+        onHide={() => {
+          setShowModal(false);
+          formik.resetForm();
+          formik.setTouched({});
+        }}
+        style={{ border: "none", borderRadius: "22px" }}
+      >
+        <Modal.Header closeButton>Add New Student</Modal.Header>
+        <Form noValidate onSubmit={formik.handleSubmit} className="px-3">
+          <Modal.Body>
+            <Form.Group className="mb-3" controlId="Image">
+              <Form.Label>Image URL</Form.Label>
+              <Form.Control
+                type="url"
+                {...formik.getFieldProps("image")}
+                isValid={formik.touched.image && !formik.errors.image}
+                isInvalid={formik.touched.image && !!formik.errors.image}
+              />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.image}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="firstName">
+              <Form.Label>First Name</Form.Label>
+              <Form.Control
+                type="text"
+                {...formik.getFieldProps("firstName")}
+                isValid={formik.touched.firstName && !formik.errors.firstName}
+                isInvalid={
+                  formik.touched.firstName && !!formik.errors.firstName
+                }
+              />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.firstName}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="lastName">
+              <Form.Label>Last Name</Form.Label>
+              <Form.Control
+                type="text"
+                {...formik.getFieldProps("lastName")}
+                isValid={formik.touched.lastName && !formik.errors.lastName}
+                isInvalid={formik.touched.lastName && !!formik.errors.lastName}
+              />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.lastName}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="email">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="text"
+                {...formik.getFieldProps("email")}
+                isValid={formik.touched.email && !formik.errors.email}
+                isInvalid={formik.touched.email && !!formik.errors.email}
+              />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.email}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="phone">
+              <Form.Label>Phone Number</Form.Label>
+              <Form.Control
+                type="text"
+                {...formik.getFieldProps("phone")}
+                isValid={formik.touched.phone && !formik.errors.phone}
+                isInvalid={formik.touched.phone && !!formik.errors.phone}
+              />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.phone}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="domain">
+              <Form.Label>Website</Form.Label>
+              <Form.Control
+                type="text"
+                {...formik.getFieldProps("domain")}
+                isValid={formik.touched.domain && !formik.errors.domain}
+                isInvalid={formik.touched.domain && !!formik.errors.domain}
+              />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.domain}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="company">
+              <Form.Label>Company Name</Form.Label>
+              <Form.Control
+                type="text"
+                {...formik.getFieldProps("company")}
+                isValid={formik.touched.company && !formik.errors.company}
+                isInvalid={formik.touched.company && !!formik.errors.company}
+              />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.company}
+              </Form.Control.Feedback>
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer className="mb-3">
+            <Button variant="secondary" onClick={handleCancel}>
+              Vazgeç
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={!(formik.dirty && formik.isValid) || loading}
+            >
+              {loading && <Spinner animation="border" size="sm" />} Kaydet
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+    </div>
   );
 };
 

@@ -1,26 +1,14 @@
-import {
-  Form,
-  Button,
-  InputGroup,
-  Container,
-  Spinner,
-  FormLabel,
-} from "react-bootstrap";
+import { Form, Button, Container, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import "./login.scss";
 import { useState } from "react";
-import PasswordInput from "./passeord-input";
+import { toast } from "../../helpers/swal";
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  // const dispatch = useAppDispatch();
-
-  function handleClick() {
-    navigate("/register");
-  }
 
   const initialValues = {
     email: "",
@@ -34,22 +22,14 @@ const LoginForm = () => {
 
   const onSubmit = async (values) => {
     setLoading(true);
+    const [userName] = values.email.split("@");
     try {
-      // const respAuth = await login(values);
-      // localStorage.removeItem("cartUUID");
-      // sessionStorage.removeItem("cartUUID");
-      // const storage = rememberMe ? encryptedLocalStorage : encryptedSessionStorage;
-      // storage.setItem('token', respAuth.data.token);
-      // rememberMe ? localStorage.setItem("cartUUID", respAuth.data.cartUUID) : sessionStorage.setItem("cartUUID", respAuth.data.cartUUID);
-      // const respUser = await getUser();
-      // dispatch(loginSuccess(respUser.data));
-      // dispatch(setItems(respUser.data.favoriteList));
-      // await loadCart();
-      // navigate("/");
+      localStorage.removeItem("userName");
+      localStorage.setItem("userName", userName);
+      navigate("/dashbord");
     } catch (err) {
-      //   dispatch(loginFailed());
       const message = err.response ? err.response.data.message : err;
-      //   toast(message, "error");
+      toast(message, "error");
     } finally {
       setLoading(false);
     }
@@ -72,10 +52,9 @@ const LoginForm = () => {
           <p>Enter your credentials to acces your acount</p>
         </div>
 
-        <FormLabel>Email</FormLabel>
-        <InputGroup className="mb-3">
+        <Form.Group className="mb-3 mt-5">
+          <Form.Label>Email</Form.Label>
           <Form.Control
-            className="email-input"
             type="email"
             placeholder="Enter your email"
             {...formik.getFieldProps("email")}
@@ -85,15 +64,20 @@ const LoginForm = () => {
           <Form.Control.Feedback type="invalid">
             {formik.errors.email}
           </Form.Control.Feedback>
-        </InputGroup>
-
-        <PasswordInput
-          placeholder="Enter your password"
-          {...formik.getFieldProps("password")}
-          isInvalid={formik.touched.password && formik.errors.password}
-          isValid={formik.touched.password && !formik.errors.password}
-          error={formik.errors.password}
-        />
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            placeholder="Enter your password"
+            {...formik.getFieldProps("password")}
+            isInvalid={formik.touched.password && formik.errors.password}
+            isValid={formik.touched.password && !formik.errors.password}
+          />
+          <Form.Control.Feedback type="invalid">
+            {formik.errors.password}
+          </Form.Control.Feedback>
+        </Form.Group>
 
         <Link to="/admin">
           <Button

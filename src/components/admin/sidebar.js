@@ -5,7 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 //import { logout } from "../../../store/slices/auth-slice";
 import "./sidebar.scss";
 ///import { setCart } from "../../../store/slices/cart-slice";
-import logo from "../../assets/img/profile-resume.jpg";
+import logo from "../../assets/img/Avatar.png";
 import {
   AiOutlineHome,
   AiOutlineDollar,

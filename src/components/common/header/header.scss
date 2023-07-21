@@ -1,0 +1,20 @@
+@use "../../../assets/scss/variables" as v;
+@use "../../../assets/scss/mixins" as m;
+
+.header-icons {
+  @include m.flexbox(row, space-between, flex-start, 0);
+  background-color: v.$color3;
+  span {
+    margin: 0.3rem 0 1.5rem 0;
+    padding-left: 0;
+    @media (min-width: 992px) {
+      margin: 0.3rem 0 1.5rem 1rem;
+      padding-left: 2rem;
+    }
+    svg {
+      color: v.$color10;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+  }
+}

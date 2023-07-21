@@ -1,23 +1,9 @@
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Card,
-  Col,
-  Container,
-  Form,
-  Row,
-  Spinner,
-} from "react-bootstrap";
-
+import { Card, Col, Container, Row } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { PiStudentLight } from "react-icons/pi";
 import { BsBookmark } from "react-icons/bs";
-import {
-  AiOutlineHome,
-  AiOutlineUser,
-  AiOutlineDollar,
-  AiOutlineSetting,
-} from "react-icons/ai";
+import { AiOutlineUser, AiOutlineDollar } from "react-icons/ai";
 import "./dashboard.scss";
 import { getUsers } from "../../api/user-service";
 const Dashboard = () => {
